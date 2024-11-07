@@ -1,5 +1,6 @@
 
 import numpy as np 
+import numba
 import pandas as pd  
 import time
 import tqdm
@@ -233,6 +234,66 @@ def DHW(weeks:int,
 
     return D
 
+
+@numba.jit()
+def define_mhw(array: np.ndarray, min_duration: int = 5, 
+                 max_gap: int = 2) -> list: 
+    """ 
+    Define marine heatwaves starting and ending day. The algorithm select 
+    events who have at least min_duration (default: 5) days of continous 
+    positive anomalies. If two of the before defined events are separated 
+    by a maximum of max_gap days (default: 2) of negative anomalies, the
+    two events are merged into one. Definition from (Hobday J., et.al., 2016, "A hierarchical 
+    approach to defining marine heatwaves"). 
+
+    Parameters:
+    -----------
+    M : 1D numpy.array
+        matrix of anomalies
+    min_duration : int
+        minimum number of consecutives warm days to define an event as 
+        an heatwave. Default: 5 days.
+    max_gap : int
+        maximum number of days between two marine heatwaves allowed to characterize
+        the two events as a single events. Default: 2 days
+    
+    Returns:
+    --------
+    mhw : lst
+        list of tuple containg the initial and ending indexes of aggragated marine 
+        heatwaves.
+  
+    """
+
+    events: list = []
+    prev_continous_ones: int = 0
+
+    array[array <= 0] = 0
+    array[array > 0] = 1
+ 
+    for i, value in enumerate(array):
+        if value == 0:
+            prev_continous_ones = 0
+        elif value == 1:
+            prev_continous_ones += 1
+            if prev_continous_ones == min_duration:
+                new_event_start = i - min_duration+1
+                # condition to merge: list not empty and small gap
+                should_merge_with_latest_event = (
+                    len(events) > 0
+                    and (new_event_start - events[-1][1] - 1) <= max_gap
+                )
+                if should_merge_with_latest_event:
+                    # replace last event with merged one
+                    events[-1] = (events[-1][0], i)
+                else:
+                    # add new event
+                    events.append((new_event_start, i))
+            if prev_continous_ones >= min_duration:
+                # replace last events
+                events[-1] = (events[-1][0], i)
+    
+    return events
 
 
 
