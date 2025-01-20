@@ -6,5 +6,6 @@ Due to the large size of the datasets, please contact me to access the data to r
 
 # License
 
-Copyright (C) 2017 ETH Zurich
+Copyright (C) 2024 ETH Zurich
 
+Colombi, N., Kropf, C.M., Burger, F.A., Bresch, D.N. and Frölicher, T.L., 2024. Modelling marine heatwaves impact on shallow and upper mesophotic tropical coral reefs. Environmental Research Letters, 19(12), p.124053.
